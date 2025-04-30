@@ -1,0 +1,83 @@
+sui client ptb \
+  --move-call 0x9f589687feb5fba1f803dd3f053d49a492b3000aecb24393f78ff7b3fef3df0c::proposal::create \
+  @0x0d945d04a4abe9cce28c099361ef200d51054e1f4766b774e151d39272a566ed \
+  '"Proposal 1"' '"Proposal description 1"' 1740309061 \
+  --assign proposal_id \
+  --move-call 0x9f589687feb5fba1f803dd3f053d49a492b3000aecb24393f78ff7b3fef3df0c::dashboard::register_proposal \
+  @0xf3e24e407f7b270e3ed0c5fa173572b8bbf718d8f6c4e542a18b129bbd6c6db3 \
+  @0x0d945d04a4abe9cce28c099361ef200d51054e1f4766b774e151d39272a566ed \
+  proposal_id \
+
+
+/// Previous ones
+sui client call \
+   --package 0xb5c46faaa470e7723180be1128e87fdd7e5437954cd26324b1a4d193e6c54abc \
+   --module dashboard \
+   --function create_proposal \
+   --args "Proposal 1" "Proposal description 1" 1768564857 \
+   --gas-budget 100000000
+ 
+ 
+ sui client ptb \
+   --move-call 0xb5c46faaa470e7723180be1128e87fdd7e5437954cd26324b1a4d193e6c54abc::dashboard::create_proposal \
+   '"Proposal 2"' \
+   '"Proposal description 2"' \
+   1768564857
+ 
+ 
+ sui client ptb \
+   --move-call 0xb5c46faaa470e7723180be1128e87fdd7e5437954cd26324b1a4d193e6c54abc::dashboard::create_proposal \
+   '"Proposal 3"' '"Proposal description 3"' 1768564857 \
+   --move-call 0xb5c46faaa470e7723180be1128e87fdd7e5437954cd26324b1a4d193e6c54abc::dashboard::create_proposal \
+   '"Proposal 4"' '"Proposal description 4"' 1768564857 \
+   --move-call 0xb5c46faaa470e7723180be1128e87fdd7e5437954cd26324b1a4d193e6c54abc::dashboard::create_proposal \
+   '"Proposal 5"' '"Proposal description 5"' 1768564857
+ 
+ 
+ 
+ sui client ptb \
+   --move-call 0xb5c46faaa470e7723180be1128e87fdd7e5437954cd26324b1a4d193e6c54abc::dashboard::create_proposal \
+   '"Proposal 6"' '"Proposal description 6"' 1768564857 \
+   --split-coins gas "[1000]" \
+   --assign coin \
+   --transfer-objects "[coin]" @0xfe53c0745aba07c88690e1821dd36f9efcb3954b08673c3d40aaf962115a8f96
+   --gas-budget 100000000
+
+
+//// unrealated examples
+# The command throws an error because it's missing the required payment amount (NFT_MINT_COST)
+# From the code, NFT_MINT_COST is set to 100_000_000 (0.1 SUI)
+# The mint_nft function requires a Coin<SUI> parameter with enough balance to cover the mint cost
+
+# The command should include the --gas-coin parameter with a coin object containing sufficient SUI
+# And the coin's value must be >= NFT_MINT_COST (100_000_000)
+
+sui client ptb \
+  --move-call 0x5d0f2c0c24163f645ad1838d80216473f7e423690c137eb5e9d7316686bc9e8c::nfttest::mint_nft \
+  @0xbf05e6d6911fd91c3cfbc3c9a2244bcc3caa426fcde61c35b1cd1ef3d427625b \
+  @0x9defebeb7d3a101402aa0d3f971b5d8106ab6a1c59cd8c1be165c63f1814748b \
+  '"TestNft Title"' '"TestNft Description"' '"https://storage.googleapis.com/nfts_sui_550009/btuNft.png"' \
+  --assign s \
+  --transfer-objects "[s]" @0xd1cb71c7e5990542ae1a0c4f403c6e6edbf4e37a076bacde40b1b0ce4906fd01 \
+  --gas-coin @0xc5398fe13d8c7482edf3b0d07c43f0fc537a7e800d0527d08888f945b19baf5e \
+  --gas-budget 100000000
+
+//////////////
+
+
+sui client ptb \
+--move-call sui::tx_context::sender \
+--assign sender \
+--assign treasury @0xbf05e6d6911fd91c3cfbc3c9a2244bcc3caa426fcde61c35b1cd1ef3d427625b \
+--split-coins gas "[100_000_000]" \
+--assign coin \
+--assign name '"Test NFT Title"' \
+--assign description '"Test NFT Description"' \
+--assign url '"https://storage.googleapis.com/nfts_sui_550009/btuNft.png"' \
+--move-call 0x5d0f2c0c24163f645ad1838d80216473f7e423690c137eb5e9d7316686bc9e8c::nfttest::mint_nft treasury coin name description url \
+--assign our_nft \
+--transfer-objects "[our_nft]" sender \
+--gas-budget 5000000 \
+--summary
+
+  

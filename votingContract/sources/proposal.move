@@ -4,11 +4,12 @@ module votingcontract::proposal;
 
 // === Imports ===
 use std::string::String;
+use sui::table::{Self, Table};
 use votingcontract::dashboard::AdminCap;
 
 
 // === Errors ===
-
+const EDuplicateVote: u64 = 0;
 
 // === Constants ===
 
@@ -22,7 +23,7 @@ public struct Proposal has key {
   voted_no_count:u64,
   expiration:u64,
   creator:address,
-  voting_registry: vector<address>,
+  voters:Table<address,bool>,
 }
 
 
@@ -34,27 +35,17 @@ public struct Proposal has key {
 // ===Initialization ===
 
 // === Public Functions ===
-public fun create(
-  _admin_cap:&AdminCap,
-  title:String,
-  description:String,
-  expiration:u64,
-  ctx: &mut TxContext,
-):ID{
-  let proposal = Proposal{
-    id:object::new(ctx),
-    title,
-    description,
-    voted_yes_count:0,
-    voted_no_count:0,
-    expiration,
-    creator:ctx.sender(),
-    voting_registry:vector::empty(),
+public fun vote(self:&mut Proposal,vote_yes:bool,ctx:&mut TxContext){
+   assert!(!self.voters.contains(ctx.sender()), EDuplicateVote);
+  if(vote_yes){
+    self.voted_yes_count = self.voted_yes_count + 1;
+  }else{
+    self.voted_no_count = self.voted_no_count + 1;
   };
-  let id = proposal.id.to_inner();
-  transfer::transfer(proposal,ctx.sender());
-  id
+   
+  self.voters.add(ctx.sender(), vote_yes);
 }
+
 
 
 // === View Functions ===
@@ -70,8 +61,8 @@ public fun expiration(self: &Proposal):u64{
   self.expiration
 }
 
-public fun voting_registry(self: &Proposal):vector<address>{
-  self.voting_registry
+public fun voters(self: &Proposal):&Table<address,bool>{
+  &self.voters
 }
 
 public fun voted_yes_count(self: &Proposal):u64{
@@ -88,6 +79,27 @@ public fun creator(self: &Proposal):address{
 
 
 // === Admin Functions ===
+public fun create(
+  _admin_cap:&AdminCap,
+  title:String,
+  description:String,
+  expiration:u64,
+  ctx: &mut TxContext,
+):ID{
+  let proposal = Proposal{
+    id:object::new(ctx),
+    title,
+    description,
+    voted_yes_count:0,
+    voted_no_count:0,
+    expiration,
+    creator:ctx.sender(),
+    voters:table::new(ctx),
+  };
+  let id = proposal.id.to_inner();
+  transfer::share_object(proposal);
+  id
+}
 
 // === Package Functions ===
 

@@ -6,13 +6,23 @@ module votingcontract::proposal;
 use std::string::String;
 use sui::table::{Self, Table};
 use sui::url::{Url, new_unsafe_from_bytes};
+use sui::clock::{Clock};
 use votingcontract::dashboard::AdminCap;
 
 
 // === Errors ===
 const EDuplicateVote: u64 = 0;
-
+const EProposalNotActive: u64 = 1;
+const EProposalExpired: u64 = 2;
 // === Constants ===
+
+// === Enums ===
+
+public enum ProposalStatus has store, drop {
+  Active,
+  Delisted,
+}
+
 
 // === Structs ===
 
@@ -24,6 +34,7 @@ public struct Proposal has key {
   voted_no_count:u64,
   expiration:u64,
   creator:address,
+  status:ProposalStatus,
   voters:Table<address,bool>,
 }
 
@@ -44,8 +55,13 @@ public struct VoteProofNFT has key {
 // ===Initialization ===
 
 // === Public Functions ===
-public fun vote(self:&mut Proposal,vote_yes:bool,ctx:&mut TxContext){
+//you cannot mutate the clock
+public fun vote(self:&mut Proposal,vote_yes:bool, clock: &Clock, ctx:&mut TxContext){
    assert!(!self.voters.contains(ctx.sender()), EDuplicateVote);
+   assert!(self.is_active(), EProposalNotActive);
+   //clock works in milliseconds
+   assert!(self.expiration > clock.timestamp_ms(), EProposalExpired);
+
   if(vote_yes){
     self.voted_yes_count = self.voted_yes_count + 1;
   }else{
@@ -60,8 +76,12 @@ public fun vote(self:&mut Proposal,vote_yes:bool,ctx:&mut TxContext){
 
 
 // === View Functions ===
+
 public fun vote_proof_url(self: &VoteProofNFT):Url{
   self.url
+}
+public fun status(self: &Proposal):&ProposalStatus{
+  &self.status
 }
 
 public fun title(self: &Proposal):String{
@@ -92,6 +112,16 @@ public fun creator(self: &Proposal):address{
   self.creator
 }
 
+public fun is_active (self:&Proposal):bool{
+ let status = self.status();
+
+ //pattern matching
+ match(status){
+  ProposalStatus::Active => true,
+  _ => false,
+ }
+}
+
 
 // === Admin Functions ===
 public fun create(
@@ -109,11 +139,27 @@ public fun create(
     voted_no_count:0,
     expiration,
     creator:ctx.sender(),
+    status:ProposalStatus::Active,
     voters:table::new(ctx),
   };
   let id = proposal.id.to_inner();
   transfer::share_object(proposal);
   id
+}
+
+public fun change_status(
+  self:&mut Proposal,
+  _admin_cap:&AdminCap,
+  status:ProposalStatus,
+){
+  self.status = status;
+}
+
+public fun remove_proposal(self:Proposal, _admin_cap:&AdminCap){
+  let Proposal{id, title:_, description:_, voted_yes_count:_, voted_no_count:_, expiration:_, creator:_, status:_, voters} = self;  
+  //Table its self doesnt have a drop ability so we need to drop the table
+  table::drop(voters);
+  object::delete(id);
 }
 
 // === Package Functions ===
@@ -146,6 +192,19 @@ fun issue_vote_proof(proposal: &Proposal, vote_yes:bool, ctx: &mut TxContext){
   };
   transfer::transfer(vote_proof_nft, ctx.sender());
   
+}
+
+
+
+
+#[test_only]
+public fun set_active_status (self:&mut Proposal, _admin_cap:&AdminCap){
+  self.change_status(_admin_cap, ProposalStatus::Active);
+}
+
+#[test_only]
+public fun set_delisted_status (self:&mut Proposal, _admin_cap:&AdminCap){
+  self.change_status(_admin_cap, ProposalStatus::Delisted);
 }
 
 

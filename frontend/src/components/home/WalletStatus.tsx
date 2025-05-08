@@ -4,7 +4,7 @@ export function WalletStatus() {
   const account = useCurrentAccount();
 
   return (
-    <div className="my-2">
+    <div className="my-2 w-full">
       <h2 className="mb-2">Wallet Status</h2>
 
       {account ? (

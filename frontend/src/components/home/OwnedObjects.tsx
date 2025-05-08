@@ -6,6 +6,11 @@ export function OwnedObjects() {
     "getOwnedObjects",
     {
       owner: account?.address as string,
+      options: {
+        showType: true,
+        showOwner: true,
+        showContent: true,
+      },
     },
     {
       enabled: !!account,
@@ -27,9 +32,13 @@ export function OwnedObjects() {
   return (
     <div className="flex flex-col my-2">
       {data.data.length === 0 ? (
-        <p className="text-gray-500">No objects owned by the connected wallet</p>
+        <p className="text-gray-500">
+          No objects owned by the connected wallet
+        </p>
       ) : (
-        <h2 className="text-xl font-bold">Objects owned by the connected wallet</h2>
+        <h2 className="text-xl font-bold">
+          Objects owned by the connected wallet
+        </h2>
       )}
       {data.data.map((object) => (
         <div key={object.data?.objectId} className="flex">

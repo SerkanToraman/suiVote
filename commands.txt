@@ -1,7 +1,34 @@
+
+sui client ptb \
+  --move-call 0x8307d6870af34b725330e15da85878b07522fd0bb151bc7f34f30cb3bc3b79c0::proposal::create \
+  @0x1c0b53bffda96ad0e1e97222ad538fef461d7e74a60dfa1c2d6284e78a912668 \
+  '"Proposal 1"' '"Proposal description 1"' 1752001355000 \
+  --assign proposal_id \
+  --move-call 0x8307d6870af34b725330e15da85878b07522fd0bb151bc7f34f30cb3bc3b79c0::dashboard::register_proposal \
+  @0xec174d304dc1f1d293f5bb05507f7f1105b78bd746c656ebeb9128602a2d2b92 \
+  @0x1c0b53bffda96ad0e1e97222ad538fef461d7e74a60dfa1c2d6284e78a912668 proposal_id \
+  --move-call 0x8307d6870af34b725330e15da85878b07522fd0bb151bc7f34f30cb3bc3b79c0::proposal::create \
+  @0x1c0b53bffda96ad0e1e97222ad538fef461d7e74a60dfa1c2d6284e78a912668 \
+  '"Proposal 2"' '"Proposal description 2"' 1752001355000 \
+  --assign proposal_id \
+  --move-call 0x8307d6870af34b725330e15da85878b07522fd0bb151bc7f34f30cb3bc3b79c0::dashboard::register_proposal \
+  @0xec174d304dc1f1d293f5bb05507f7f1105b78bd746c656ebeb9128602a2d2b92 \
+  @0x1c0b53bffda96ad0e1e97222ad538fef461d7e74a60dfa1c2d6284e78a912668 proposal_id \
+  --move-call 0x8307d6870af34b725330e15da85878b07522fd0bb151bc7f34f30cb3bc3b79c0::proposal::create \
+  @0x1c0b53bffda96ad0e1e97222ad538fef461d7e74a60dfa1c2d6284e78a912668 \
+  '"Proposal 3"' '"Proposal description 3"' 1752001355000 \
+  --assign proposal_id \
+  --move-call 0x8307d6870af34b725330e15da85878b07522fd0bb151bc7f34f30cb3bc3b79c0::dashboard::register_proposal \
+  @0xec174d304dc1f1d293f5bb05507f7f1105b78bd746c656ebeb9128602a2d2b92 \
+  @0x1c0b53bffda96ad0e1e97222ad538fef461d7e74a60dfa1c2d6284e78a912668 proposal_id
+
+
+
+/////Old Ones
 sui client ptb \
   --move-call 0x9f589687feb5fba1f803dd3f053d49a492b3000aecb24393f78ff7b3fef3df0c::proposal::create \
   @0x0d945d04a4abe9cce28c099361ef200d51054e1f4766b774e151d39272a566ed \
-  '"Proposal 1"' '"Proposal description 1"' 1740309061 \
+  '"Proposal 1"' '"Proposal description 1"' 1752001355000 \
   --assign proposal_id \
   --move-call 0x9f589687feb5fba1f803dd3f053d49a492b3000aecb24393f78ff7b3fef3df0c::dashboard::register_proposal \
   @0xf3e24e407f7b270e3ed0c5fa173572b8bbf718d8f6c4e542a18b129bbd6c6db3 \

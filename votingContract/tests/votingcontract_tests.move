@@ -4,7 +4,8 @@ module votingcontract::votingcontract_tests;
 // uncomment this line to import the module
 use sui::test_scenario;
 use votingcontract::dashboard::{Self,AdminCap,Dashboard};
-use votingcontract::proposal::{Self,Proposal};
+use votingcontract::proposal::{Self,Proposal,VoteProofNFT};
+use sui::url::{new_unsafe_from_bytes};
 
 const EWrongVoteCount: u64 = 0;
 
@@ -51,6 +52,7 @@ fun test_create_proposal_no_admin_cap(){
     };
 
     scenario.next_tx(user);
+    // this should fail because user does not have admin cap
     {
         let admin_cap = scenario.take_from_sender<AdminCap>();
         new_proposal(&admin_cap, scenario.ctx());
@@ -91,8 +93,57 @@ fun test_register_proposal_as_admin() {
 }
 
 #[test]
-#[expected_failure(abort_code = proposal::EDuplicateVote)]
 fun test_voting() {
+    let user1 = @0xB0B;
+    let user2 = @0xB0C;
+    let admin = @0xA01;
+
+    let mut scenario = test_scenario::begin(admin);
+    {
+        dashboard::issue_admin_cap(scenario.ctx());
+    };
+
+    scenario.next_tx(admin);
+    {
+        let admin_cap = scenario.take_from_sender<AdminCap>();
+        new_proposal(&admin_cap, scenario.ctx());
+        test_scenario::return_to_sender(&scenario, admin_cap);
+    };
+
+    scenario.next_tx(admin);
+    {
+           let admin_cap = scenario.take_from_sender<AdminCap>();
+            new_proposal(&admin_cap, scenario.ctx());
+            test_scenario::return_to_sender(&scenario, admin_cap);
+    };
+
+    scenario.next_tx(user1);
+    {
+        let mut proposal = scenario.take_shared<Proposal>();
+
+        proposal.vote(true, scenario.ctx());
+
+        assert!(proposal.voted_yes_count() == 1, EWrongVoteCount);
+
+        test_scenario::return_shared(proposal);
+    };
+    scenario.next_tx(user2);
+    {
+        let mut proposal = scenario.take_shared<Proposal>();
+
+        proposal.vote(true, scenario.ctx());
+
+        assert!(proposal.voted_yes_count() == 2, EWrongVoteCount);
+
+        test_scenario::return_shared(proposal);
+    };
+
+    scenario.end();
+}
+
+#[test]
+#[expected_failure(abort_code = proposal::EDuplicateVote)]
+fun test_dublicate_voting() {
     let user1 = @0xB0B;
     let user2 = @0xB0C;
     let admin = @0xA01;
@@ -149,12 +200,52 @@ fun test_voting() {
     scenario.end();
 }
 
+#[test]
+fun test_issue_vote_proof() {
+    let user1 = @0xB0B;
+    let admin = @0xA01;
+
+    let mut scenario = test_scenario::begin(admin);
+    {
+        dashboard::issue_admin_cap(scenario.ctx());
+    };
+
+    scenario.next_tx(admin);
+    {
+        let admin_cap = scenario.take_from_sender<AdminCap>();
+        new_proposal(&admin_cap, scenario.ctx());
+        test_scenario::return_to_sender(&scenario, admin_cap);
+    };
+
+    scenario.next_tx(admin);
+    {
+           let admin_cap = scenario.take_from_sender<AdminCap>();
+            new_proposal(&admin_cap, scenario.ctx());
+            test_scenario::return_to_sender(&scenario, admin_cap);
+    };
+     scenario.next_tx(user1);
+    {
+        let mut proposal = scenario.take_shared<Proposal>();
+
+        proposal.vote(true, scenario.ctx());
 
 
+        test_scenario::return_shared(proposal);
+    };
 
+    scenario.next_tx(user1);
+    {
+        let vote_proof = scenario.take_from_sender<VoteProofNFT>();
 
+        assert!(vote_proof.vote_proof_url()== new_unsafe_from_bytes(b"https://thrangra.sirv.com/vote_yes_nft.jpg"));
 
+       scenario.return_to_sender(vote_proof);
+    };
+  
+     
 
+    scenario.end();
+}
 
 
 

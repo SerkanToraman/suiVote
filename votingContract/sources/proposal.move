@@ -5,6 +5,7 @@ module votingcontract::proposal;
 // === Imports ===
 use std::string::String;
 use sui::table::{Self, Table};
+use sui::url::{Url, new_unsafe_from_bytes};
 use votingcontract::dashboard::AdminCap;
 
 
@@ -26,6 +27,14 @@ public struct Proposal has key {
   voters:Table<address,bool>,
 }
 
+public struct VoteProofNFT has key {
+  id:UID,
+  proposal_id:ID,
+  name:String,
+  description:String,
+  url:Url,
+}
+
 
 // === Events ===
 
@@ -44,11 +53,17 @@ public fun vote(self:&mut Proposal,vote_yes:bool,ctx:&mut TxContext){
   };
    
   self.voters.add(ctx.sender(), vote_yes);
+
+  issue_vote_proof(self, vote_yes, ctx);
+
 }
 
 
-
 // === View Functions ===
+public fun vote_proof_url(self: &VoteProofNFT):Url{
+  self.url
+}
+
 public fun title(self: &Proposal):String{
   self.title
 }
@@ -104,6 +119,34 @@ public fun create(
 // === Package Functions ===
 
 // === Private Functions ===
+fun issue_vote_proof(proposal: &Proposal, vote_yes:bool, ctx: &mut TxContext){
+  let mut name = b"NFT".to_string();
+  name.append(proposal.title);
 
-// === Test Functions ===
+  let mut description = b"Proof of voting on".to_string();
+  let proposal_address= object::id_address(proposal).to_string();
+  description.append(proposal_address);
+
+  let vote_yes_image = new_unsafe_from_bytes(b"https://thrangra.sirv.com/vote_yes_nft.jpg");
+  let vote_no_image = new_unsafe_from_bytes(b"https://thrangra.sirv.com/vote_no_nft.jpg");
+
+  let url = if(vote_yes){
+    vote_yes_image
+  }else{
+    vote_no_image
+  };
+
+  let vote_proof_nft = VoteProofNFT{
+    id:object::new(ctx),
+    // proposal_id:proposal.id.to_inner(),
+    proposal_id:object::id(proposal),
+    name,
+    description,
+    url,
+  };
+  transfer::transfer(vote_proof_nft, ctx.sender());
+  
+}
+
+
 

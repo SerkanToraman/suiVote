@@ -1,7 +1,9 @@
 import { SuiObjectData } from "@mysten/sui/client";
 
 export type ProposalDetails = {
-  id: string;
+  id: {
+    id: string;
+  };
   title: string;
   description: string;
   voted_yes_count: number;

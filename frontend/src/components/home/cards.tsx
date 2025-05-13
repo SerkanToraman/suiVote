@@ -4,7 +4,7 @@ import { getProposalDetails } from "@/lib/suiUtils";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 import { useState } from "react";
 import { formatUnixTimestamp, isExpired } from "@/lib/utils";
-import { Modal } from "./modal";
+import { VoteModal } from "./VoteModal";
 
 export function ObjectCard({ id }: { id: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,11 +48,13 @@ export function ObjectCard({ id }: { id: string }) {
         </p>
       </div>
       {isModalOpen && proposalDetails && !hasExpired && (
-        <Modal
+        <VoteModal
           id={id}
           onClose={() => setIsModalOpen(false)}
+          isModalOpen={isModalOpen}
           proposalDetails={proposalDetails}
           onVote={(vote: boolean) => {
+            setIsModalOpen(false);
             console.log("VotedYes", vote);
           }}
         />

@@ -7,7 +7,9 @@ use std::string::String;
 use sui::table::{Self, Table};
 use sui::url::{Url, new_unsafe_from_bytes};
 use sui::clock::{Clock};
+use sui::{display,package};
 use votingcontract::dashboard::AdminCap;
+
 
 
 // === Errors ===
@@ -46,6 +48,9 @@ public struct VoteProofNFT has key {
   url:Url,
 }
 
+// ===OTW===
+
+public struct PROPOSAL() has drop;
 
 // === Events ===
 
@@ -53,6 +58,34 @@ public struct VoteProofNFT has key {
 
 
 // ===Initialization ===
+fun init(otw:PROPOSAL,ctx: &mut TxContext){
+     let publisher = package::claim(otw, ctx);
+
+     let mut display = display::new<VoteProofNFT>(&publisher, ctx);
+
+    display.add(
+        b"name".to_string(),
+        b"{name}".to_string(),
+    );
+    display.add(
+        b"description".to_string(),
+        b"{description}".to_string(),
+    );
+    display.add(
+      b"proposal_id".to_string(),
+      b"{proposal_id}".to_string(),
+    );
+    display.add(
+        b"image_url".to_string(),
+        b"{url}".to_string(),
+    );
+
+    // Update the version of the display.
+    display.update_version();
+    transfer::public_transfer(publisher, ctx.sender());
+    transfer::public_transfer(display, ctx.sender());
+   
+}
 
 // === Public Functions ===
 //you cannot mutate the clock

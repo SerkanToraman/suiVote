@@ -1,14 +1,33 @@
 import { WalletStatus } from "./WalletStatus";
 import { useNetworkVariable } from "../../networkConfig";
-import { getDashboardProposalIds } from "../../lib/suiUtils";
+import {
+  getDashboardProposalIds,
+  extractVoteNfts,
+  checkIfVotedNft,
+} from "../../lib/suiUtils";
 // import { OwnedObjects } from "./OwnedObjects";
 import { ObjectCard } from "./cards";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
+import { useVoteNfts } from "../../hooks/useVoteNfts";
+
 function HomePage() {
   const dashboardId = useNetworkVariable("dashboardId");
-  console.log("dashboardId", dashboardId);
 
-  const { data: dashboard } = useSuiClientQuery("getObject", {
+  const {
+    data: voteNfts,
+    refetch: refetchVoteNfts,
+    isLoading: isLoadingVoteNfts,
+  } = useVoteNfts();
+
+  const voteNftsData = voteNfts ? extractVoteNfts(voteNfts) : [];
+
+  console.log("voteNftsData", voteNftsData);
+
+  const {
+    data: dashboard,
+    refetch: refetchDashboard,
+    isLoading: isLoadingDashboard,
+  } = useSuiClientQuery("getObject", {
     id: dashboardId,
     options: {
       showContent: true,
@@ -28,7 +47,16 @@ function HomePage() {
       {/* Proposals */}
       <div className="flex flex-wrap gap-4">
         {objectIds?.map((id, index) => (
-          <ObjectCard key={index} id={id} />
+          <ObjectCard
+            key={index}
+            id={id}
+            hasVoted={checkIfVotedNft(voteNftsData, id)}
+            voteNft={voteNftsData.find((nft) => nft.proposalId === id)}
+            refetchDashboard={refetchDashboard}
+            refetchVoteNfts={refetchVoteNfts}
+            isLoadingVoteNfts={isLoadingVoteNfts}
+            isLoadingDashboard={isLoadingDashboard}
+          />
         ))}
       </div>
     </div>
